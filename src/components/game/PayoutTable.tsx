@@ -1,19 +1,19 @@
-import { RiskLevel, PAYOUT_TABLES } from '@/config/gameConfig';
+import { RiskLevel, BoardSize, PAYOUT_TABLES } from '@/config/gameConfig';
 
 interface PayoutTableProps {
   risk: RiskLevel;
+  rows: BoardSize;
 }
 
-export default function PayoutTable({ risk }: PayoutTableProps) {
-  const config = PAYOUT_TABLES[risk];
+export default function PayoutTable({ risk, rows }: PayoutTableProps) {
+  const config = PAYOUT_TABLES[rows][risk];
   const half = Math.ceil(config.multipliers.length / 2);
-  // Only show unique half since it's symmetric
   const uniqueMultipliers = config.multipliers.slice(0, half);
 
   return (
     <div className="glass rounded-xl p-4 animate-fade-in">
       <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
-        Payout Table — {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk
+        Payout Table — {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk · {rows} Rows
       </h3>
       <div className="flex flex-wrap gap-1.5">
         {uniqueMultipliers.map((mult, i) => {

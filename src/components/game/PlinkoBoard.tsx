@@ -137,7 +137,7 @@ export default function PlinkoBoard({ risk, rows, onBallLand, dropTrigger }: Pli
     // Draw bucket labels
     Matter.Events.on(render, 'afterRender', () => {
       const ctx = render.context;
-      const config = PAYOUT_TABLES[risk];
+      const config = PAYOUT_TABLES[rows][risk];
 
       for (let i = 0; i < bucketCount; i++) {
         const x = 10 + i * bucketWidth + bucketWidth / 2;
@@ -201,7 +201,7 @@ export default function PlinkoBoard({ risk, rows, onBallLand, dropTrigger }: Pli
 
         if (sensorBody && ballBody && ballBody.id === ball.id) {
           const bucketIndex = parseInt(sensorBody.label!.split('-')[1]);
-          const config = PAYOUT_TABLES[risk];
+          const config = PAYOUT_TABLES[rows][risk];
           const multiplier = config.multipliers[bucketIndex];
           onBallLand(bucketIndex, multiplier);
 

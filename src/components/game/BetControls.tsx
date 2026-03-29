@@ -1,14 +1,16 @@
-import { RiskLevel, BET_OPTIONS } from '@/config/gameConfig';
+import { RiskLevel, BoardSize, BET_OPTIONS, BOARD_SIZES } from '@/config/gameConfig';
 import { Minus, Plus, Zap, RotateCcw } from 'lucide-react';
 
 interface BetControlsProps {
   balance: number;
   risk: RiskLevel;
+  boardRows: BoardSize;
   betAmount: number;
   isDropping: boolean;
   autoMode: boolean;
   tokenMode: boolean;
   onRiskChange: (risk: RiskLevel) => void;
+  onBoardRowsChange: (rows: BoardSize) => void;
   onBetChange: (amount: number) => void;
   onDrop: () => void;
   onDropMultiple: (count: number) => void;
@@ -30,8 +32,8 @@ const riskStyles: Record<RiskLevel, string> = {
 };
 
 export default function BetControls({
-  balance, risk, betAmount, isDropping, autoMode, tokenMode,
-  onRiskChange, onBetChange, onDrop, onDropMultiple,
+  balance, risk, boardRows, betAmount, isDropping, autoMode, tokenMode,
+  onRiskChange, onBoardRowsChange, onBetChange, onDrop, onDropMultiple,
   onAutoToggle, onTokenModeToggle, onResetBalance,
 }: BetControlsProps) {
   const canBet = balance >= betAmount && !isDropping;
