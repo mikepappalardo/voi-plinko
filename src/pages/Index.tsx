@@ -138,20 +138,20 @@ export default function Index() {
             <PayoutTable risk={game.risk} rows={game.boardRows} />
           </div>
 
-          {/* Right panel — Results & Stats */}
-          <div className="space-y-4 order-3">
+          {/* Results & Stats */}
+          <div className="w-full max-w-[600px] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SessionStats stats={game.stats} />
             <ResultsHistory results={game.results} />
+          </div>
 
-            {/* Provably fair placeholder */}
-            <div className="glass rounded-xl p-4">
-              <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Provably Fair</h3>
-              <p className="text-xs text-muted-foreground">
-                On-chain fairness verification will be available when Token Mode launches on Voi Network.
-              </p>
-              <div className="mt-2 px-3 py-2 rounded-lg bg-secondary/50 text-xs text-muted-foreground font-mono">
-                Seed: demo_mode
-              </div>
+          {/* Provably fair placeholder */}
+          <div className="glass rounded-xl p-4 w-full max-w-[600px]">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Provably Fair</h3>
+            <p className="text-xs text-muted-foreground">
+              On-chain fairness verification will be available when Token Mode launches on Voi Network.
+            </p>
+            <div className="mt-2 px-3 py-2 rounded-lg bg-secondary/50 text-xs text-muted-foreground font-mono">
+              Seed: demo_mode
             </div>
           </div>
         </div>
