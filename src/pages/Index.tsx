@@ -105,9 +105,9 @@ export default function Index() {
       <Header tokenMode={game.tokenMode} onConnectWallet={handleConnectWallet} />
 
       <main className="flex-1 container py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-4 max-w-6xl mx-auto">
-          {/* Left panel — Controls */}
-          <div className="space-y-4 order-2 lg:order-1">
+        <div className="flex flex-col items-center gap-4 max-w-6xl mx-auto">
+          {/* Controls above board */}
+          <div className="w-full max-w-[600px]">
             <BetControls
               balance={game.balance}
               risk={game.risk}
@@ -127,17 +127,15 @@ export default function Index() {
             />
           </div>
 
-          {/* Center — Board */}
-          <div className="order-1 lg:order-2 flex flex-col items-center">
-            <PlinkoBoard
-              risk={game.risk}
-              rows={game.boardRows}
-              onBallLand={handleBallLand}
-              dropTrigger={dropTrigger}
-            />
-            <div className="mt-4 w-full max-w-[500px]">
-              <PayoutTable risk={game.risk} rows={game.boardRows} />
-            </div>
+          {/* Board */}
+          <PlinkoBoard
+            risk={game.risk}
+            rows={game.boardRows}
+            onBallLand={handleBallLand}
+            dropTrigger={dropTrigger}
+          />
+          <div className="w-full max-w-[500px]">
+            <PayoutTable risk={game.risk} rows={game.boardRows} />
           </div>
 
           {/* Right panel — Results & Stats */}
