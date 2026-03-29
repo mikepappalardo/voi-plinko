@@ -6,11 +6,13 @@ import PayoutTable from '@/components/game/PayoutTable';
 import ResultsHistory from '@/components/game/ResultsHistory';
 import SessionStats from '@/components/game/SessionStats';
 import { useGameState } from '@/hooks/useGameState';
+import { useCelebration } from '@/hooks/useCelebration';
 import { connectWallet } from '@/services/voiBlockchain';
 import { toast } from 'sonner';
 
 export default function Index() {
   const game = useGameState();
+  const { celebrate, setFlashRef } = useCelebration();
   const [dropTrigger, setDropTrigger] = useState(0);
   const autoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -40,11 +42,14 @@ export default function Index() {
 
   const handleBallLand = useCallback((bucketIndex: number, multiplier: number) => {
     game.addResult(multiplier, bucketIndex);
+    celebrate(multiplier);
 
-    if (multiplier >= 2) {
+    if (multiplier >= 5) {
+      toast.success(`🔥 ${multiplier}x — HUGE WIN!`, { duration: 3000 });
+    } else if (multiplier >= 2) {
       toast.success(`🎉 ${multiplier}x — Nice win!`, { duration: 2000 });
     }
-  }, [game]);
+  }, [game, celebrate]);
 
   const handleAutoToggle = useCallback(() => {
     if (game.autoMode) {
@@ -90,7 +95,13 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      {/* Screen flash overlay */}
+      <div
+        ref={setFlashRef}
+        className="fixed inset-0 pointer-events-none z-50"
+        style={{ opacity: 0 }}
+      />
       <Header tokenMode={game.tokenMode} onConnectWallet={handleConnectWallet} />
 
       <main className="flex-1 container py-4">
