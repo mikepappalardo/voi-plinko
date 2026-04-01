@@ -7,9 +7,10 @@ interface PlinkoBoardProps {
   rows: BoardSize;
   onBallLand: (bucketIndex: number, multiplier: number) => void;
   dropTrigger: number;
+  forceBucket?: number | null;
 }
 
-export default function PlinkoBoard({ risk, rows, onBallLand, dropTrigger }: PlinkoBoardProps) {
+export default function PlinkoBoard({ risk, rows, onBallLand, dropTrigger, forceBucket }: PlinkoBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Matter.Engine | null>(null);
   const renderRef = useRef<Matter.Render | null>(null);
@@ -175,9 +176,18 @@ export default function PlinkoBoard({ risk, rows, onBallLand, dropTrigger }: Pli
     if (!engine) return;
 
     const { width } = getCanvasSize();
-    const offsetX = (Math.random() - 0.5) * 20;
+    // If forceBucket is set (on-chain mode), aim ball at that bucket's X position
+    let dropX = width / 2;
+    if (forceBucket != null) {
+      const numBuckets = rows + 1;
+      const totalWidth = numBuckets * pegGap;
+      const startX = (width - totalWidth) / 2 + pegGap / 2;
+      dropX = startX + forceBucket * pegGap;
+    } else {
+      dropX = width / 2 + (Math.random() - 0.5) * 20;
+    }
 
-    const ball = Matter.Bodies.circle(width / 2 + offsetX, 10, ballRadius, {
+    const ball = Matter.Bodies.circle(dropX, 10, ballRadius, {
       restitution: 0.4,
       friction: 0.05,
       density: 0.002,

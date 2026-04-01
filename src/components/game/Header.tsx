@@ -1,13 +1,15 @@
-import { Wallet, Volume2, VolumeX } from 'lucide-react';
+import { Wallet, Volume2, VolumeX, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 interface HeaderProps {
   tokenMode: boolean;
   onConnectWallet: () => void;
+  walletAddress?: string | null;
 }
 
-export default function Header({ tokenMode, onConnectWallet }: HeaderProps) {
+export default function Header({ tokenMode, onConnectWallet, walletAddress }: HeaderProps) {
   const [soundOn, setSoundOn] = useState(false);
+  const short = walletAddress ? walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4) : null;
 
   return (
     <header className="flex items-center justify-between px-4 py-3 glass-strong">
@@ -29,7 +31,17 @@ export default function Header({ tokenMode, onConnectWallet }: HeaderProps) {
           {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>
 
-        {tokenMode && (
+        {walletAddress ? (
+          <button
+            onClick={onConnectWallet}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/20 border border-primary/40 text-primary text-sm font-medium hover:bg-primary/30 transition-colors"
+            title="Disconnect wallet"
+          >
+            <Wallet size={16} />
+            <span className="hidden sm:inline font-mono text-xs">{short}</span>
+            <LogOut size={14} className="hidden sm:inline opacity-60" />
+          </button>
+        ) : (
           <button
             onClick={onConnectWallet}
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"

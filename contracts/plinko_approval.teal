@@ -1,0 +1,549 @@
+#pragma version 9
+
+// ─── Router ───────────────────────────────────────────────────────────────────
+txn ApplicationID
+int 0
+==
+bnz handle_create
+
+txn OnCompletion
+int OptIn
+==
+bnz handle_optin
+
+txn OnCompletion
+int NoOp
+==
+bnz handle_noop
+
+// Reject all other OnCompletion types
+err
+
+// ─── Create ───────────────────────────────────────────────────────────────────
+handle_create:
+  // createApplication(houseAddr: address)
+  // Args: [0] = house address (32 bytes)
+  txna ApplicationArgs 0
+  len
+  int 32
+  ==
+  assert
+  byte "house"
+  txna ApplicationArgs 0
+  app_global_put
+  byte "totalBets"
+  int 0
+  app_global_put
+  byte "totalPayout"
+  int 0
+  app_global_put
+  byte "minBet"
+  int 100000
+  app_global_put
+  byte "maxBet"
+  int 100000000
+  app_global_put
+  byte "houseFeeBps"
+  int 300
+  app_global_put
+  int 1
+  return
+
+// ─── OptIn ────────────────────────────────────────────────────────────────────
+handle_optin:
+  byte "pBets"
+  int 0
+  app_local_put
+  byte "pWins"
+  int 0
+  app_local_put
+  int 1
+  return
+
+// ─── NoOp dispatch ────────────────────────────────────────────────────────────
+handle_noop:
+  txna ApplicationArgs 0
+  byte "play"
+  ==
+  bnz handle_play
+
+  txna ApplicationArgs 0
+  byte "fund"
+  ==
+  bnz handle_fund
+
+  txna ApplicationArgs 0
+  byte "withdraw"
+  ==
+  bnz handle_withdraw
+
+  txna ApplicationArgs 0
+  byte "setLimits"
+  ==
+  bnz handle_set_limits
+
+  txna ApplicationArgs 0
+  byte "setHouse"
+  ==
+  bnz handle_set_house
+
+  err
+
+// ─── play ─────────────────────────────────────────────────────────────────────
+// Args: [0]="play" [1]=riskLevel(8-bit) [2]=boardRows(8-bit)
+// Gtxn[txn.GroupIndex-1] = payment to contract
+handle_play:
+  // Verify payment txn (immediately preceding in group)
+  txn GroupIndex
+  int 1
+  -
+  store 0  // payment txn index
+
+  // Payment receiver = app address
+  load 0
+  gtxns Receiver
+  global CurrentApplicationAddress
+  ==
+  assert
+
+  // Payment sender = caller
+  load 0
+  gtxns Sender
+  txn Sender
+  ==
+  assert
+
+  // bet = payment amount
+  load 0
+  gtxns Amount
+  store 1  // bet amount
+
+  // bet >= minBet
+  load 1
+  byte "minBet"
+  app_global_get
+  >=
+  assert
+
+  // bet <= maxBet
+  load 1
+  byte "maxBet"
+  app_global_get
+  <=
+  assert
+
+  // riskLevel <= 2
+  txna ApplicationArgs 1
+  btoi
+  store 2  // riskLevel
+  load 2
+  int 2
+  <=
+  assert
+
+  // boardRows in {8, 12, 16}
+  txna ApplicationArgs 2
+  btoi
+  store 3  // boardRows
+  load 3
+  int 8
+  ==
+  load 3
+  int 12
+  ==
+  ||
+  load 3
+  int 16
+  ==
+  ||
+  assert
+
+  // numBuckets = boardRows + 1
+  load 3
+  int 1
+  +
+  store 4  // numBuckets
+
+  // seed = sha256(txID || itob(round))
+  txn TxID
+  global Round
+  itob
+  concat
+  sha256
+
+  // bucketIndex = first 8 bytes of hash (as uint64) % numBuckets
+  int 0
+  int 8
+  extract3
+  btoi
+  load 4
+  %
+  store 5  // bucketIndex
+
+  // pos = mirror(bucketIndex, boardRows)
+  // half = (boardRows + 1) / 2 = numBuckets / 2
+  load 4
+  int 2
+  /
+  store 6  // half
+
+  load 5
+  load 6
+  <=
+  bz pos_right
+  load 5
+  store 7  // pos = bucketIndex
+  b pos_done
+pos_right:
+  load 3
+  load 5
+  -
+  store 7  // pos = boardRows - bucketIndex
+pos_done:
+
+  // Get multiplierBps based on riskLevel + pos
+  // We use a chained if/else
+  // LOW (riskLevel==0): pos0=560 pos1=210 pos2=110 pos3=100 pos4=70 pos5=50 else=40
+  // MEDIUM (riskLevel==1): pos0=1300 pos1=300 pos2=130 pos3=70 pos4=40 pos5=30 else=20
+  // HIGH (riskLevel==2): pos0=2900 pos1=400 pos2=150 pos3=30 pos4=20 pos5=10 else=5
+
+  load 2
+  int 0
+  ==
+  bnz risk_low
+  load 2
+  int 1
+  ==
+  bnz risk_medium
+  b risk_high
+
+risk_low:
+  load 7
+  int 0
+  ==
+  bnz m560
+  load 7
+  int 1
+  ==
+  bnz m210
+  load 7
+  int 2
+  ==
+  bnz m110
+  load 7
+  int 3
+  ==
+  bnz m100
+  load 7
+  int 4
+  ==
+  bnz m70
+  load 7
+  int 5
+  ==
+  bnz m50
+  int 40
+  b mul_done
+m560: int 560
+  b mul_done
+m210: int 210
+  b mul_done
+m110: int 110
+  b mul_done
+m100: int 100
+  b mul_done
+m70: int 70
+  b mul_done
+m50: int 50
+  b mul_done
+
+risk_medium:
+  load 7
+  int 0
+  ==
+  bnz m1300
+  load 7
+  int 1
+  ==
+  bnz m300
+  load 7
+  int 2
+  ==
+  bnz m130
+  load 7
+  int 3
+  ==
+  bnz m70b
+  load 7
+  int 4
+  ==
+  bnz m40
+  load 7
+  int 5
+  ==
+  bnz m30
+  int 20
+  b mul_done
+m1300: int 1300
+  b mul_done
+m300: int 300
+  b mul_done
+m130: int 130
+  b mul_done
+m70b: int 70
+  b mul_done
+m40: int 40
+  b mul_done
+m30: int 30
+  b mul_done
+
+risk_high:
+  load 7
+  int 0
+  ==
+  bnz m2900
+  load 7
+  int 1
+  ==
+  bnz m400
+  load 7
+  int 2
+  ==
+  bnz m150
+  load 7
+  int 3
+  ==
+  bnz m30b
+  load 7
+  int 4
+  ==
+  bnz m20
+  load 7
+  int 5
+  ==
+  bnz m10
+  int 5
+  b mul_done
+m2900: int 2900
+  b mul_done
+m400: int 400
+  b mul_done
+m150: int 150
+  b mul_done
+m30b: int 30
+  b mul_done
+m20: int 20
+  b mul_done
+m10: int 10
+  b mul_done
+
+mul_done:
+  store 8  // multiplierBps
+
+  // houseFee = bet * houseFeeBps / 10000
+  load 1
+  byte "houseFeeBps"
+  app_global_get
+  *
+  int 10000
+  /
+  store 9  // houseFee
+
+  // netBet = bet - houseFee
+  load 1
+  load 9
+  -
+  store 10  // netBet
+
+  // payout = netBet * multiplierBps / 100
+  load 10
+  load 8
+  *
+  int 100
+  /
+  store 11  // payout
+
+  // Send house fee if > 0
+  load 9
+  int 0
+  >
+  bz skip_fee
+  itxn_begin
+  int pay
+  itxn_field TypeEnum
+  byte "house"
+  app_global_get
+  itxn_field Receiver
+  load 9
+  itxn_field Amount
+  int 0
+  itxn_field Fee
+  itxn_submit
+skip_fee:
+
+  // Send payout if > 0
+  load 11
+  int 0
+  >
+  bz skip_payout
+  // Check pool has enough (balance - minBalance >= payout)
+  global CurrentApplicationAddress
+  balance
+  global MinBalance
+  -
+  load 11
+  >=
+  assert
+  itxn_begin
+  int pay
+  itxn_field TypeEnum
+  txn Sender
+  itxn_field Receiver
+  load 11
+  itxn_field Amount
+  int 0
+  itxn_field Fee
+  itxn_submit
+skip_payout:
+
+  // Update global stats
+  byte "totalBets"
+  byte "totalBets"
+  app_global_get
+  int 1
+  +
+  app_global_put
+  byte "totalPayout"
+  byte "totalPayout"
+  app_global_get
+  load 11
+  +
+  app_global_put
+
+  // Update local stats
+  txn Sender
+  byte "pBets"
+  txn Sender
+  byte "pBets"
+  app_local_get
+  int 1
+  +
+  app_local_put
+  txn Sender
+  byte "pWins"
+  txn Sender
+  byte "pWins"
+  app_local_get
+  load 11
+  +
+  app_local_put
+
+  // Log: bucketIndex | multiplierBps | payout
+  load 5
+  itob
+  load 8
+  itob
+  concat
+  load 11
+  itob
+  concat
+  log
+
+  int 1
+  return
+
+// ─── fund ─────────────────────────────────────────────────────────────────────
+handle_fund:
+  // Gtxn[idx-1] = payment to contract
+  txn GroupIndex
+  int 1
+  -
+  store 0
+  load 0
+  gtxns Receiver
+  global CurrentApplicationAddress
+  ==
+  assert
+  load 0
+  gtxns Amount
+  int 0
+  >
+  assert
+  int 1
+  return
+
+// ─── withdraw ─────────────────────────────────────────────────────────────────
+handle_withdraw:
+  // Only house
+  txn Sender
+  byte "house"
+  app_global_get
+  ==
+  assert
+  // Args: [1] = amount (itob)
+  txna ApplicationArgs 1
+  btoi
+  store 0  // amount
+  global CurrentApplicationAddress
+  balance
+  global MinBalance
+  -
+  load 0
+  >=
+  assert
+  itxn_begin
+  int pay
+  itxn_field TypeEnum
+  byte "house"
+  app_global_get
+  itxn_field Receiver
+  load 0
+  itxn_field Amount
+  int 0
+  itxn_field Fee
+  itxn_submit
+  int 1
+  return
+
+// ─── setLimits ────────────────────────────────────────────────────────────────
+handle_set_limits:
+  txn Sender
+  byte "house"
+  app_global_get
+  ==
+  assert
+  txna ApplicationArgs 1
+  btoi
+  store 0  // newMin
+  txna ApplicationArgs 2
+  btoi
+  store 1  // newMax
+  load 0
+  int 0
+  >
+  assert
+  load 1
+  load 0
+  >
+  assert
+  byte "minBet"
+  load 0
+  app_global_put
+  byte "maxBet"
+  load 1
+  app_global_put
+  int 1
+  return
+
+// ─── setHouse ─────────────────────────────────────────────────────────────────
+handle_set_house:
+  txn Sender
+  byte "house"
+  app_global_get
+  ==
+  assert
+  byte "house"
+  txna ApplicationArgs 1
+  app_global_put
+  int 1
+  return
