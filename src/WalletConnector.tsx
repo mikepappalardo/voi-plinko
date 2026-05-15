@@ -57,10 +57,10 @@ export function WalletConnector({ onConnected }: Props) {
         <>
           {/* backdrop */}
           <div
-            style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 98 }}
             onClick={() => setOpen(false)}
           />
-          <div className="wallet-dropdown">
+          <div className="wallet-dropdown" style={{ zIndex: 100 }}>
             <div className="wallet-dropdown-title">Select Wallet</div>
             {wallets.map(wallet => (
               <button
