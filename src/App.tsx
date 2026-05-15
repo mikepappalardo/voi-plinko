@@ -4,6 +4,7 @@ import algosdk from 'algosdk';
 import PlinkoBoard from './PlinkoBoard';
 import { APP_ID, APP_ADDRESS, ALGOD_URL, MIN_BET, MAX_BET, MULTIPLIERS, ROWS } from './config';
 import './App.css';
+import { WalletConnector } from './WalletConnector';
 
 type RiskLevel = 0 | 1 | 2;
 type Phase = 'idle' | 'opting-in' | 'betting' | 'waiting' | 'settling' | 'result';
@@ -13,7 +14,7 @@ const client = new algosdk.Algodv2('', ALGOD_URL, '');
 const SEL = (sig: string) => algosdk.ABIMethod.fromSignature(sig).getSelector();
 
 export default function App() {
-  const { activeAddress, activeWallet, wallets, transactionSigner } = useWallet();
+  const { activeAddress, activeWallet, transactionSigner } = useWallet();
   const account = activeAddress ?? null;
 
   const [betAmount, setBetAmount] = useState(1);
@@ -26,7 +27,6 @@ export default function App() {
   const [pendingRound, setPendingRound] = useState(0); void pendingRound;
   const [dropping, setDropping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showWallets, setShowWallets] = useState(false);
 
   const riskLabels = ['Low', 'Mid', 'High'];
 
@@ -203,31 +203,13 @@ export default function App() {
     setStatus('Place your next bet!');
   };
 
-  const shortAddr = (a: string) => `${a.slice(0, 6)}...${a.slice(-4)}`;
 
   return (
     <div className="app">
       <header className="header">
         <div className="logo">🎰 Plinko <span>on Voi</span></div>
         <div className="header-right">
-          {account ? (
-            <div className="account-badge" onClick={() => activeWallet?.disconnect()} style={{ cursor: 'pointer' }} title="Click to disconnect">
-              {shortAddr(account)}
-            </div>
-          ) : (
-            <div style={{ position: 'relative' }}>
-              <button className="btn-connect" onClick={() => setShowWallets(v => !v)}>Connect Wallet</button>
-              {showWallets && (
-                <div className="wallet-dropdown">
-                  {wallets.map(w => (
-                    <button key={w.id} className="wallet-option" onClick={() => { w.connect(); setShowWallets(false); }}>
-                      {w.metadata.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <WalletConnector />
         </div>
       </header>
 
@@ -277,7 +259,7 @@ export default function App() {
             {error && <div className="error-box">⚠️ {error}</div>}
 
             <div className="action-area">
-              {!account && <button className="btn-primary" onClick={() => setShowWallets(true)}>Connect Wallet</button>}
+              {!account && <WalletConnector />}
               {account && !isOptedIn && phase === 'idle' && (
                 <button className="btn-primary" onClick={doOptIn}>Opt In to Play</button>
               )}
