@@ -123,7 +123,7 @@ export default function App() {
         sender: account!,
         suggestedParams: { ...sp, fee: BigInt(sp.minFee) * 2n, flatFee: true },
         appIndex: APP_ID,
-        appArgs: [SEL('submit_bet(pay,uint64,uint64)void'), algosdk.encodeUint64(risk), algosdk.encodeUint64(ROWS)],
+        appArgs: [SEL('submit_bet(pay,uint64)void'), algosdk.encodeUint64(risk)],
       });
       algosdk.assignGroupID([payTxn, callTxn]);
       const signed = await sign([payTxn, callTxn]);

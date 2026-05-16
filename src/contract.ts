@@ -27,7 +27,6 @@ export async function submitBet(
   sender: string,
   amountMicroVoi: number,
   riskLevel: number, // 0=low, 1=mid, 2=high
-  boardRows: number
 ) {
   const sp = await client.getTransactionParams().do();
   const sp2 = { ...sp, fee: BigInt(sp.minFee) * 2n, flatFee: true };
@@ -44,9 +43,8 @@ export async function submitBet(
     suggestedParams: sp2,
     appIndex: APP_ID,
     appArgs: [
-      SEL('submit_bet(pay,uint64,uint64)void'),
+      SEL('submit_bet(pay,uint64)void'),
       algosdk.encodeUint64(riskLevel),
-      algosdk.encodeUint64(boardRows),
     ],
   });
 
@@ -87,11 +85,10 @@ export async function getLocalState(address: string) {
       pendingRound: state['pRound'] ?? 0,
       pendingAmount: state['pAmt'] ?? 0,
       pendingRisk: state['pRisk'] ?? 0,
-      pendingRows: state['pRows'] ?? 0,
       isOptedIn: true,
     };
   } catch {
-    return { pendingRound: 0, pendingAmount: 0, pendingRisk: 0, pendingRows: 0, isOptedIn: false };
+    return { pendingRound: 0, pendingAmount: 0, pendingRisk: 0, isOptedIn: false };
   }
 }
 
