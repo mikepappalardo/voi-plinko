@@ -10,7 +10,7 @@ interface PlinkoBoardProps {
 }
 
 const RISK_LABELS = ['Low', 'Mid', 'High'];
-const RISK_COLORS = ['#00a39e', '#f0b800', '#ef4444'];
+const RISK_COLORS = ['#00cfff', '#b44fff', '#ff2d9b'];
 
 export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, result }: PlinkoBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,8 +18,8 @@ export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, 
   const [ballPos, setBallPos] = useState<{ x: number; y: number } | null>(null);
   const [landed, setLanded] = useState<number | null>(null);
 
-  const W = 520;
-  const H = 480;
+  const W = 780;
+  const H = 720;
   const PAD = 40;
   const COLS = rows + 1;
   const colW = (W - PAD * 2) / (COLS - 1);
@@ -43,7 +43,7 @@ export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, 
     ctx.clearRect(0, 0, W, H);
 
     // Background
-    ctx.fillStyle = '#0d1b2e';
+    ctx.fillStyle = '#080818';
     ctx.fillRect(0, 0, W, H);
 
     // Multiplier buckets
@@ -57,15 +57,15 @@ export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, 
       const mult = mults[Math.min(i, mults.length - 1)];
       const isLanded = landed === i;
 
-      ctx.fillStyle = isLanded ? '#00a39e' : mult >= 2 ? '#1a3a2a' : mult >= 1 ? '#2a2a1a' : '#2a1a1a';
-      ctx.strokeStyle = isLanded ? '#00ffee' : '#ffffff22';
+      ctx.fillStyle = isLanded ? '#ffd70033' : mult >= 2 ? '#ffd70022' : mult >= 1 ? '#00cfff18' : '#ff2d9b15';
+      ctx.strokeStyle = isLanded ? '#ffd700' : '#b44fff44';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.beginPath(); ctx.moveTo(bx+6, bucketY); ctx.lineTo(bx+bucketW-6, bucketY); ctx.quadraticCurveTo(bx+bucketW-2, bucketY, bx+bucketW-2, bucketY+4); ctx.lineTo(bx+bucketW-2, bucketY+40); ctx.quadraticCurveTo(bx+bucketW-2, bucketY+44, bx+bucketW-6, bucketY+44); ctx.lineTo(bx+6, bucketY+44); ctx.quadraticCurveTo(bx+2, bucketY+44, bx+2, bucketY+40); ctx.lineTo(bx+2, bucketY+4); ctx.quadraticCurveTo(bx+2, bucketY, bx+6, bucketY); ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = isLanded ? '#fff' : mult >= 5 ? '#00ffee' : mult >= 1 ? '#f0b800' : '#ff6666';
+      ctx.fillStyle = isLanded ? '#ffd700' : mult >= 5 ? '#ff2d9b' : mult >= 1 ? '#00cfff' : '#b44fff';
       ctx.font = `bold ${mult >= 10 ? 10 : 12}px Poppins, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText(`${mult}x`, PAD + i * colW, bucketY + 26);
@@ -75,7 +75,7 @@ export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, 
     for (const pin of pins) {
       ctx.beginPath();
       ctx.arc(pin.x, pin.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff88';
+      ctx.fillStyle = '#b44fff99';
       ctx.fill();
     }
 
@@ -83,7 +83,7 @@ export default function PlinkoBoard({ rows = ROWS, riskLevel, dropping, onLand, 
     if (ballPos) {
       ctx.beginPath();
       ctx.arc(ballPos.x, ballPos.y, 8, 0, Math.PI * 2);
-      ctx.fillStyle = '#f0b800';
+      ctx.fillStyle = '#ff2d9b';
       ctx.shadowColor = '#f0b800';
       ctx.shadowBlur = 12;
       ctx.fill();
