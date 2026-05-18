@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@agoralabs-sh/avm-web-provider": "^1.7.0",
     "@txnlab/use-wallet": "^4.6.0",
     "@txnlab/use-wallet-react": "^4.6.0",
     "@txnlab/use-wallet-ui-react": "^1.1.0",
