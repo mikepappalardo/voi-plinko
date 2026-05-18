@@ -13,7 +13,7 @@ const networks = new NetworkConfigBuilder()
     isTestnet: false,
     genesisHash: 'r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=',
     genesisId: 'voimain-v1.0',
-    caipChainId: 'algorand:r20fSQI8gWe_kFZziNonSPCXLwcQmH_n',
+    caipChainId: 'algorand:r20fSQI8gWe_kFZziNonSPCXLwcQmH_nxROvnnueWOk',
   })
   .build();
 
