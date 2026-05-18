@@ -64,12 +64,17 @@ export function WalletButton() {
     setConnectingId(wallet.id);
     setError(null);
     try {
-      await wallet.connect({ network: 'voimain' });
+      // WalletConnect opens its own modal — don't pass network param or it fails silently
+      if (wallet.id === 'walletconnect') {
+        await wallet.connect();
+      } else {
+        await wallet.connect({ network: 'voimain' });
+      }
       setOpen(false);
     } catch (e: any) {
       console.error('Connect failed:', e);
-      // Kibisis sometimes throws a non-critical network already set error — treat as success
       const msg = e?.message ?? String(e);
+      // Kibisis sometimes throws "already enabled" — treat as success
       if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('enabled')) {
         setOpen(false);
       } else {
