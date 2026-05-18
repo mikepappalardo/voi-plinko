@@ -17,22 +17,20 @@ const networks = new NetworkConfigBuilder()
   })
   .build();
 
+const WC_OPTIONS = {
+  projectId: 'cd7fe0125d88d239da79fa286e6de2a8',
+  metadata: {
+    name: 'VOI PLINKO',
+    description: 'On-chain Plinko on the Voi Network',
+    url: 'https://voiplinko.com',
+    icons: ['https://voiplinko.com/voi-plinko-logo.jpg'],
+  },
+};
+
 const wallets: any[] = [
   { id: WalletId.KIBISIS },
   { id: WalletId.LUTE, options: { siteName: 'VOI PLINKO' } },
-  {
-    id: WalletId.WALLETCONNECT,
-    options: {
-      projectId: 'cd7fe0125d88d239da79fa286e6de2a8',
-      themeMode: 'dark' as const,
-      metadata: {
-        name: 'VOI PLINKO',
-        description: 'On-chain Plinko on the Voi Network',
-        url: 'https://voiplinko.com',
-        icons: ['https://voiplinko.com/voi-plinko-logo.jpg'],
-      },
-    },
-  },
+  { id: WalletId.BIATEC, options: WC_OPTIONS },
 ];
 
 export const walletManager = new WalletManager({
@@ -45,12 +43,17 @@ export const walletManager = new WalletManager({
 const WALLET_ICONS: Record<string, string> = {
   kibisis: '🟣',
   lute: '🎸',
-  walletconnect: '🔗',
+  biatec: '🔷',
 };
 const WALLET_LABELS: Record<string, string> = {
   kibisis: 'Kibisis',
   lute: 'Lute',
-  walletconnect: 'WalletConnect',
+  biatec: 'Biatec',
+};
+const WALLET_DESC: Record<string, string> = {
+  kibisis: 'Browser extension',
+  lute: 'Browser extension',
+  biatec: 'Mobile wallet via QR',
 };
 
 // ── WalletButton component ───────────────────────────────────────────────────
@@ -64,8 +67,8 @@ export function WalletButton() {
     setConnectingId(wallet.id);
     setError(null);
     try {
-      // WalletConnect opens its own modal — close ours first so it's not blocked
-      if (wallet.id === 'walletconnect') {
+      // Biatec opens its own WC modal — close ours first so it's not blocked
+      if (wallet.id === 'biatec') {
         setOpen(false);
         await wallet.connect();
       } else {
@@ -183,9 +186,7 @@ export function WalletButton() {
                         {isLoading ? 'Connecting…' : (WALLET_LABELS[wallet.id] ?? wallet.metadata?.name ?? wallet.id)}
                       </div>
                       <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                        {wallet.id === 'kibisis' && 'Browser extension'}
-                        {wallet.id === 'lute' && 'Browser extension'}
-                        {wallet.id === 'walletconnect' && 'Mobile wallet via QR'}
+                        {WALLET_DESC[wallet.id] ?? ''}
                       </div>
                     </div>
                     {isLoading && (
