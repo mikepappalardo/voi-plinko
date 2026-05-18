@@ -31,6 +31,7 @@ const wallets: any[] = [
   { id: WalletId.KIBISIS },
   { id: WalletId.LUTE, options: { siteName: 'VOI PLINKO' } },
   { id: WalletId.BIATEC, options: WC_OPTIONS },
+  { id: WalletId.WALLETCONNECT, options: { ...WC_OPTIONS, themeMode: 'dark' as const } },
 ];
 
 export const walletManager = new WalletManager({
@@ -44,16 +45,19 @@ const WALLET_ICONS: Record<string, string> = {
   kibisis: '🟣',
   lute: '🎸',
   biatec: '🔷',
+  walletconnect: '📱',
 };
 const WALLET_LABELS: Record<string, string> = {
   kibisis: 'Kibisis',
   lute: 'Lute',
   biatec: 'Biatec',
+  walletconnect: 'Voi Wallet / WalletConnect',
 };
 const WALLET_DESC: Record<string, string> = {
   kibisis: 'Browser extension',
   lute: 'Browser extension',
   biatec: 'Mobile wallet via QR',
+  walletconnect: 'Voi Wallet app (App Store) or any WC wallet',
 };
 
 // ── WalletButton component ───────────────────────────────────────────────────
@@ -67,8 +71,8 @@ export function WalletButton() {
     setConnectingId(wallet.id);
     setError(null);
     try {
-      // Biatec opens its own WC modal — close ours first so it's not blocked
-      if (wallet.id === 'biatec') {
+      // WC-based wallets open their own modal — close ours first so it's not blocked
+      if (wallet.id === 'biatec' || wallet.id === 'walletconnect') {
         setOpen(false);
         await wallet.connect();
       } else {
