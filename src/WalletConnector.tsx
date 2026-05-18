@@ -15,21 +15,23 @@ const networks = new NetworkConfigBuilder()
     genesisId: 'voimain-v1.0',
     caipChainId: 'algorand:r20fSQI8gWe_kFZziNonSPCXLwcQmH_n',
   })
-  .addNetwork('voi-mainnet', {
-    algod: { token: '', baseServer: 'https://mainnet-api.voi.nodely.dev', port: '443' },
-    isTestnet: false,
-    genesisHash: 'r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=',
-    genesisId: 'voimain-v1.0',
-    caipChainId: 'algorand:r20fSQI8gWe_kFZziNonSPCXLwcQmH_n',
-  })
   .build();
 
 const wallets: any[] = [
-  WalletId.KIBISIS,
-  { id: WalletId.LUTE, options: { siteName: 'Plinko VOI' } },
+  { id: WalletId.KIBISIS },
+  { id: WalletId.LUTE, options: { siteName: 'VOI PLINKO' } },
   {
     id: WalletId.WALLETCONNECT,
-    options: { projectId: 'cd7fe0125d88d239da79fa286e6de2a8', themeMode: 'dark' as const },
+    options: {
+      projectId: 'cd7fe0125d88d239da79fa286e6de2a8',
+      themeMode: 'dark' as const,
+      metadata: {
+        name: 'VOI PLINKO',
+        description: 'On-chain Plinko on the Voi Network',
+        url: 'https://voiplinko.com',
+        icons: ['https://voiplinko.com/voi-plinko-logo.jpg'],
+      },
+    },
   },
 ];
 
@@ -62,11 +64,17 @@ export function WalletButton() {
     setConnectingId(wallet.id);
     setError(null);
     try {
-      await wallet.connect();
+      await wallet.connect({ network: 'voimain' });
       setOpen(false);
     } catch (e: any) {
       console.error('Connect failed:', e);
-      setError(e?.message ?? String(e));
+      // Kibisis sometimes throws a non-critical network already set error — treat as success
+      const msg = e?.message ?? String(e);
+      if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('enabled')) {
+        setOpen(false);
+      } else {
+        setError(msg);
+      }
     } finally {
       setConnectingId(null);
     }
