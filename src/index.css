@@ -109,3 +109,9 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* WalletConnect modal above everything */
+wcm-modal, w3m-modal, [id="walletconnect-modal"] {
+  z-index: 99999 !important;
+  position: fixed !important;
+}

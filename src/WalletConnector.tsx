@@ -64,8 +64,9 @@ export function WalletButton() {
     setConnectingId(wallet.id);
     setError(null);
     try {
-      // WalletConnect opens its own modal — don't pass network param or it fails silently
+      // WalletConnect opens its own modal — close ours first so it's not blocked
       if (wallet.id === 'walletconnect') {
+        setOpen(false);
         await wallet.connect();
       } else {
         await wallet.connect({ network: 'voimain' });

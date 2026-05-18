@@ -11,6 +11,11 @@ try {
   localStorage.removeItem('@txnlab/use-wallet');
 } catch { /* ignore */ }
 
+// WalletConnect modal needs a mount point
+const wcMount = document.createElement('div');
+wcMount.id = 'walletconnect-modal';
+document.body.appendChild(wcMount);
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WalletProvider manager={walletManager}>
